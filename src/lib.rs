@@ -1,5 +1,7 @@
+use crate::downgrade::{downgrade_admin, downgrade_group};
 use detector::{download_img, Detector};
 use kovi::bot::runtimebot::kovi_api::KoviApi as _;
+use kovi::event::{AdminMsgEvent, GroupMsgEvent};
 use kovi::log::error;
 use kovi::utils::{load_json_data, save_json_data};
 use kovi::{tokio, AllMsgEvent, PluginBuilder as p};
@@ -8,6 +10,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
 mod detector;
+mod downgrade;
 
 pub const LONG_MODEL: &[u8] = include_bytes!("../model/long.onnx");
 pub const NAILONG_MODEL: &[u8] = include_bytes!("../model/nailong.onnx");
@@ -139,10 +142,11 @@ async fn main() {
     let handle_admin = {
         let long_detector = long_detector.clone();
         let nailong_detector = nailong_detector.clone();
-        move |e: Arc<AllMsgEvent>| {
+        move |e: Arc<AdminMsgEvent>| {
             let long_detector = long_detector.clone();
             let nailong_detector = nailong_detector.clone();
             async move {
+                let e = downgrade_admin(e);
                 long_detector.handle_admin_command(&e);
                 nailong_detector.handle_admin_command(&e);
             }
@@ -152,10 +156,11 @@ async fn main() {
     let handle_my_times = {
         let long_detector = long_detector.clone();
         let nailong_detector = nailong_detector.clone();
-        move |e: Arc<AllMsgEvent>| {
+        move |e: Arc<GroupMsgEvent>| {
             let long_detector = long_detector.clone();
             let nailong_detector = nailong_detector.clone();
             async move {
+                let e = downgrade_group(e);
                 long_detector.handle_my_times(&e);
                 nailong_detector.handle_my_times(&e);
             }
@@ -166,11 +171,12 @@ async fn main() {
         let long_detector = long_detector.clone();
         let nailong_detector = nailong_detector.clone();
         let bot = bot.clone();
-        move |e: Arc<AllMsgEvent>| {
+        move |e: Arc<GroupMsgEvent>| {
             let long_detector = long_detector.clone();
             let nailong_detector = nailong_detector.clone();
             let bot = bot.clone();
             async move {
+                let e = downgrade_group(e);
                 // 首先检查群号是否在白名单中
                 let group_id = match e.group_id {
                     Some(id) => id,
@@ -254,11 +260,12 @@ async fn main() {
         let long_detector = long_detector.clone();
         let nailong_detector = nailong_detector.clone();
         let bot = bot.clone();
-        move |e: Arc<AllMsgEvent>| {
+        move |e: Arc<GroupMsgEvent>| {
             let long_detector = long_detector.clone();
             let nailong_detector = nailong_detector.clone();
             let bot = bot.clone();
             async move {
+                let e = downgrade_group(e);
                 // 首先检查群号是否在白名单中
                 let group_id = match e.group_id {
                     Some(id) => id,

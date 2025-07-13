@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-kovi = ">=0.8.4,<0.12"
+kovi = ">=0.12"
 ort = "=2.0.0-rc.9"
 ndarray = "0.16"
 tracing-subscriber = { version = "0.3", default-features = false, features = [
